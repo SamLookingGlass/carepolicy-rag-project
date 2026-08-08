@@ -1,0 +1,32 @@
+{
+  "dense": {
+    "total": 75,
+    "success_rate": 1.0,
+    "refusal_accuracy": 1.0,
+    "avg_citation_accuracy": 1.0,
+    "avg_answer_similarity": 0.7494430956811001,
+    "avg_latency_ms": 10858.371171999412,
+    "p95_latency_ms": 14779.72530000261,
+    "retrieval_mode": "dense"
+  },
+  "bm25": {
+    "total": 75,
+    "success_rate": 0.9733333333333334,
+    "refusal_accuracy": 0.9733333333333334,
+    "avg_citation_accuracy": 1.0,
+    "avg_answer_similarity": 0.7327213955033907,
+    "avg_latency_ms": 5171.457395998489,
+    "p95_latency_ms": 7019.405600003665,
+    "retrieval_mode": "bm25"
+  },
+  "hybrid": {
+    "total": 75,
+    "success_rate": 1.0,
+    "refusal_accuracy": 1.0,
+    "avg_citation_accuracy": 1.0,
+    "avg_answer_similarity": 0.7516148862669008,
+    "avg_latency_ms": 5946.813301333459,
+    "p95_latency_ms": 7476.223199992091,
+    "retrieval_mode": "hybrid"
+  }
+}

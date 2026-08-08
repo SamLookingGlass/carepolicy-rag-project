@@ -1,0 +1,18 @@
+.env
+.venv/
+venv/
+.cursor/
+archive/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+# Generated corpus artifacts (rebuild via scripts/scrape_corpus.py + ingest_all.py)
+data/raw/
+data/processed/
+data/index/
+data/sources/url_report.json
+data/sources/pdpc_discovered.json
+*.log
+.DS_Store
