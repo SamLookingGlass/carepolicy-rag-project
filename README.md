@@ -11,7 +11,7 @@ I wanted to go beyond a basic RAG chatbot.
 
 A simple RAG system can retrieve a document, send it to a LLM, and generate an answer. I wanted to understand what happens when we care more about where the answer came from and when the system should not answer. And also how to evaluate different retrieval approaches and build an end-to-end RAG pipeline.
 
-Real question-answering systems fail in three places: retrieval accuracy, citation integrity, and knowing when *not* to answer. This project aims to tackles all three:
+Real question-answering systems fail in three places: retrieval accuracy, citation integrity, and knowing when *not* to answer. A fourth gap shows up on comparison questions: a pipeline that retrieves **once** can mix two topics into one bag of chunks and never search a second source. This project aims to tackle all four:
 
 - **Hybrid retrieval** : BM25 keyword search + dense vector search, fused with Reciprocal Rank Fusion, then reranked by a cross-encoder
 - **Verified citations** : every claim in an answer carries a `[1]`-style marker that is checked against the retrieved sources after generation
@@ -21,52 +21,74 @@ Real question-answering systems fail in three places: retrieval accuracy, citati
 
 ## What I built
 
-The system follows this general flow:
+Ingestion is shared. At query time there are two paths. `POST /query` defaults to `mode=pipeline` so the published hybrid numbers stay comparable. Set `mode=agent` for the tool-calling path.
 
 ```mermaid
 flowchart TD
     A[Government Websites] --> B[Document Ingestion]
-    B --> C[Parsing & Chunking]
-    C --> D[BM25<br/>Keyword Search]
-    C --> E[Vector Search<br/>Semantic Search]
-    D --> F[Hybrid Retrieval<br/>RRF Fusion]
+    B --> C[Parsing and Chunking]
+    C --> D[BM25 Keyword Index]
+    C --> E[Qdrant Vector Index]
+    D --> F{Query mode}
     E --> F
-    F --> G[Cross-Encoder<br/>Reranking]
-    G --> H[Confidence Check]
-    H --> I[LLM<br/>Answer Generation]
-    I --> J[Citation<br/>Verification]
-    J --> K[FastAPI<br/>Response]
+    F -->|pipeline default| G[Rewrite then Hybrid RRF]
+    G --> H[Cross-Encoder Rerank]
+    H --> I[Confidence Gate]
+    I --> J[LLM Answer]
+    J --> K[Citation Verifier]
+    F -->|agent| L[Model decides next tool]
+    L -->|search_policy| M[Hybrid plus Rerank]
+    L -->|read_chunk| N[Full chunk by id]
+    M --> L
+    N --> L
+    L -->|done or budget hit| O[Structured FinalAnswer]
+    O --> K
+    K --> P[FastAPI Response]
 ```
 
+### Pipeline steps (`mode=pipeline`)
 
+1. Rewrite the question if needed (expand acronyms such as CHAS)
+2. Retrieve with both BM25 and vector search
+3. Fuse the two ranked lists with Reciprocal Rank Fusion (top 20)
+4. Rerank with a cross-encoder (top 5)
+5. Check retrieval confidence; refuse if the top score is too low
+6. Generate an answer from those chunks
+7. Verify that every `[N]` citation points at a retrieved chunk
+8. Return the answer, citations, and confidence through the API
 
-For each question, the system:
-
-1. Rewrite the question if needed
-2. Retrives documents using both BM25 and vector search
-3. Combines the results using Reciprocal Rank Fusion (RRF) (Top 25)
-4. Reranks the results using a cross-encoder (Top 5)
-5. Checks retrieval confidence
-6. Generates an answer using the retrieved information
-7. Verifies the citations in the generated answer
-8. Returns the answer, citations and confidence information through an API
-
-`POST /query` defaults to this pipeline (`mode=pipeline`) so the published hybrid numbers stay comparable. Set `mode=agent` for the tool-calling path described below.
+The agent path is a different loop on the **same** indexes. It is described next.
 
 ## Agentic query mode
 
-The pipeline always retrieves once. An agent can retrieve more than once: compare two schemes, or search HealthHub and then PDPC, then stop.
+The pipeline always retrieves **once**, then answers. That is the right default for a question like "What is CHAS?". It is a poor fit for "Compare CHAS and MediShield Life" or "CHAS eligibility *and* the PDPA consent obligation": one search tends to drown the second topic.
+
+The agent is still a RAG system. It does not crawl the web or call extra APIs. It only calls two tools that wrap the same hybrid retriever and chunk store. The difference is **who decides the next search**: the code (pipeline) vs the model (agent).
+
+### Agent steps (`mode=agent`)
+
+1. Send the user question to the chat model with two tools bound (`search_policy`, `read_chunk`)
+2. Check the budget (at most 4 model turns and 6 tool calls). If either limit is hit, refuse instead of looping forever
+3. If the model calls `search_policy`, run hybrid retrieve + cross-encoder rerank. An optional `domain` filter keeps one search on HealthHub, MOH, HPB, or PDPC
+4. If the model calls `read_chunk`, return the full text of a chunk from a previous search (or look it up by id)
+5. Append each tool result to the conversation as an observation and loop
+6. When the model stops calling tools, ask it for a **structured** final object: `answer`, `citation_indices`, `refused`
+7. Run the same citation verifier as the pipeline
+8. Return the answer plus a `steps` trace of every tool call (pipeline responses send `steps: []`)
 
 ```mermaid
 flowchart TD
-    Q[UserQuestion] --> Decide{ModelDecision}
-    Decide -->|search_policy| Search[HybridRetrieveAndRerank]
-    Decide -->|read_chunk| Read[FullChunkById]
-    Search --> Decide
-    Read --> Decide
-    Decide -->|finalAnswer| Struct[StructuredAnswer]
+    Q[UserQuestion] --> Loop{Budget OK}
+    Loop -->|turns over 4 or tools over 6| Refuse[Refuse]
+    Loop -->|yes| Decide[Chat model with tools bound]
+    Decide -->|search_policy| Search[Hybrid retrieve then rerank]
+    Search --> Loop
+    Decide -->|read_chunk| Read[Full chunk by id]
+    Read --> Loop
+    Decide -->|no more tool calls| Struct[Structured FinalAnswer]
     Struct --> Verify[CitationVerifier]
-    Verify --> API[FastAPIResponseWithSteps]
+    Refuse --> API[Response with steps]
+    Verify --> API
 ```
 
 **Tools**
@@ -76,7 +98,7 @@ flowchart TD
 | `search_policy` | `query`, optional `domain` (`healthhub.sg`, `moh.gov.sg`, `hpb.gov.sg`, `pdpc.gov.sg`) | Top reranked snippets with `chunk_id`, title, URL, domain, score, and a stable `citation_index` |
 | `read_chunk` | `chunk_id` from a previous search | Full chunk text |
 
-**Budget.** The loop allows at most 4 model turns and 6 tool calls. If either limit is hit, the system refuses instead of searching forever. The final answer is a structured object (`answer`, `citation_indices`, `refused`) so refusal is a boolean, not a magic string. Citation markers are still checked with the same verifier as the pipeline.
+**Budget.** Limits live in config (`agent_max_model_turns=4`, `agent_max_tool_calls=6`). Refusal is a boolean on the structured answer, not a magic string in free text. Agent mode needs a chat model (`OPENAI_API_KEY` or Azure). The extractive fallback stays on the pipeline path only.
 
 **Swagger trace.** Call `POST /query` with `"mode": "agent"`. Pipeline responses send `steps: []`. Agent responses look like:
 
@@ -106,8 +128,6 @@ flowchart TD
 }
 ```
 
-Agent mode needs a chat model (`OPENAI_API_KEY` or Azure). The extractive fallback stays on the pipeline path only.
-
 ## What I learned
 
 ### **Takeaway 1: Keyword search and vector search have different strengths.**
@@ -130,6 +150,10 @@ For example:
 "What is the stock price of Apple today?"
 
 This is unrelated to the healthcare policy documents in the corpus, so the system should refuse rather than invent an answer. Therefore, I added a confidence gate that uses the reranking score to decide whether the retrieved information is strong enough to answer.
+
+### **Takeaway 4: An agent is for questions that need more than one retrieval.**
+
+A tool-calling loop is slower and more expensive than the pipeline: each extra search is another retrieve + rerank, and each model turn is another LLM call. It is worth that cost when the user is comparing two schemes or mixing healthcare policy with PDPA. It is not a replacement for the pipeline on single-hop questions, which is why `mode=pipeline` stays the default and the 75-question ablation is still the retrieval baseline.
 
 ## Results
 
@@ -170,20 +194,32 @@ flowchart LR
     end
 
     subgraph query [QueryPath]
-        Q[UserQuery] --> Hybrid[HybridRetriever]
+        Q[UserQuery] --> Mode{mode}
+        Mode -->|pipeline| Hybrid[HybridRetriever]
         Hybrid --> BM25Index
         Hybrid --> Qdrant
         Hybrid --> Rerank[CrossEncoderReranker]
-        Rerank --> Gen[LLMGenerator]
+        Rerank --> Gate[ConfidenceGate]
+        Gate --> Gen[LLMGenerator]
+        Mode -->|agent| Agent[PolicyAgent]
+        Agent -->|search_policy| Hybrid
+        Agent -->|read_chunk| BM25Index
+        Agent --> Struct[StructuredFinalAnswer]
         Gen --> Cite[CitationVerifier]
+        Struct --> Cite
         Cite --> API[FastAPIResponse]
     end
 
     subgraph eval [Eval]
         Golden[GoldenDataset] --> EvalRunner[EvalRunner]
+        AgentSet[golden_agent.jsonl] --> AgentEval[AgentEval]
         API --> LangSmith[LangSmithTraces]
     end
 ```
+
+Pipeline: rewrite → hybrid retrieve (top 20) → cross-encoder rerank (top 5) → confidence gate → grounded generation → citation verification.
+
+Agent: model-in-the-loop over `search_policy` / `read_chunk` → structured `FinalAnswer` → the same citation verifier. Shared indexes; different control flow.
 
 
 
@@ -280,6 +316,8 @@ python -m src.eval.run_eval --mode agent-compare  # pipeline vs agent on that se
 
 Reports are written to `data/eval/`. Regenerate the pipeline golden set with `python scripts/build_golden_live.py`. The agent set lives in `data/eval/golden_agent.jsonl`.
 
+The 75-question set is mostly single-hop ("What is CHAS?"). It is the right test for retrieval quality, and a bad test for tool use: the "right" agent trajectory is usually one `search_policy`, so a 100% expected-tools score would not mean much. `golden_agent.jsonl` is 10 questions on purpose: comparisons, two-domain (health + PDPA), a few single-hop controls, and two refusals. It scores the **trajectory** (did it search twice, stay in budget, refuse on Apple stock) as well as the answer. `--mode agent-compare` runs the same 10 through the pipeline so you can see where extra searches help.
+
 ### Reading the reports
 
 Each run writes `data/eval/report_<mode>.json` containing a `summary` block plus per-question `results` — the per-question rows (confidence, latency, individual metric flags) are what you drill into when something fails. `ablation_report.json` puts the three mode summaries side by side.
@@ -343,11 +381,12 @@ For the agent path (comparison / two-domain questions):
 Other good test questions:
 
 
-| Question                                      | Expected                                     |
-| --------------------------------------------- | -------------------------------------------- |
-| `What is CHAS and who is eligible?`           | Cited answer (`healthhub.sg` / `moh.gov.sg`) |
-| `What is the PDPA consent obligation?`        | Cited answer (`pdpc.gov.sg`)                 |
-| `What is the stock price of Apple Inc today?` | `refused: true`                              |
+| Question | Expected |
+| --- | --- |
+| `What is CHAS and who is eligible?` | Cited answer (`healthhub.sg` / `moh.gov.sg`). Pipeline default. |
+| `What is the PDPA consent obligation?` | Cited answer (`pdpc.gov.sg`) |
+| `Compare CHAS and MediShield Life: who is eligible for each?` with `"mode": "agent"` | Two searches in `steps`, cited answer |
+| `What is the stock price of Apple Inc today?` | `refused: true` |
 
 
 Rate limit: **30 requests / minute** per API key. Responses include `answer`, `citations` (with live URLs), `confidence`, `refused`, `citation_verification`, and `steps` (empty for `mode=pipeline`).
@@ -388,7 +427,7 @@ There are still several limitations in the current version.
 
 - The system only uses public sources, so information may become outdated when government policies change.
 - It is not a replacement for professional medical or legal advice.
-- The current p95 latency of around 7.5 seconds is still prototype-level.
+- The current pipeline p95 latency of around 7.5 seconds is still prototype-level. Agent mode is slower still: each extra search repeats retrieve + rerank, and each model turn is another LLM call, so expect roughly 2–4× pipeline latency on comparison questions.
 - The evaluation set is relatively small.
 - Many evaluation questions are single-hop and close to the wording of the source documents.
 - The current answer similarity score is around 0.75, so there is still room to improve answer quality.
