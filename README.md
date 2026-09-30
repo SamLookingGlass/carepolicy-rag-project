@@ -1,7 +1,7 @@
 # Project CarePolicy
 
 Hello, dear reader!
-This is a project exploring how to build a reliable RAG (Retrieval-Augmented Generation) system that answers questions about Singapore public healthcare policy, with **verified citations** and **honest refusals** when it does not have relevant information.
+This is a project exploring how to build a reliable RAG (Retrieval-Augmented Generation) system with agentic tool calling that answers questions about Singapore public healthcare policy, with **verified citations** and **honest refusals** when it does not have relevant information. 
 
 **Note:** This is an educational project, not a medical or legal advice tool. It was built only on publicly available documentation.
 
@@ -21,7 +21,7 @@ Real question-answering systems fail in three places: retrieval accuracy, citati
 
 ## What I built
 
-Ingestion is shared. At query time there are two paths. `POST /query` defaults to `mode=pipeline` so the published hybrid numbers stay comparable. Set `mode=agent` for the tool-calling path.
+At query time there are two paths. `POST /query` defaults to `mode=pipeline` so the published hybrid numbers stay comparable. While `mode=agent` sets the tool-calling path. Document ingestion is shared between these two paths.
 
 ```mermaid
 flowchart TD
@@ -61,9 +61,9 @@ The agent path is a different loop on the **same** indexes. It is described next
 
 ## Agentic query mode
 
-The pipeline always retrieves **once**, then answers. That is the right default for a question like "What is CHAS?". It is a poor fit for "Compare CHAS and MediShield Life" or "CHAS eligibility *and* the PDPA consent obligation": one search tends to drown the second topic.
+The pipeline always retrieves **once**, then answers. That is the right default for a question like "What is CHAS?". But this is a poor fit for questions like "Compare CHAS and MediShield Life" or "CHAS eligibility *and* the PDPA consent obligation": one search tends to drown the second topic.
 
-The agent is still a RAG system. It does not crawl the web or call extra APIs. It only calls two tools that wrap the same hybrid retriever and chunk store. The difference is **who decides the next search**: the code (pipeline) vs the model (agent).
+Do note that the agent is still a RAG system. It does not crawl the web or call extra APIs. It only calls two tools that wrap the same hybrid retriever and chunk store. The difference is **who decides the next search**: the code (pipeline) vs the model (agent).
 
 ### Agent steps (`mode=agent`)
 
@@ -98,7 +98,7 @@ flowchart TD
 | `search_policy` | `query`, optional `domain` (`healthhub.sg`, `moh.gov.sg`, `hpb.gov.sg`, `pdpc.gov.sg`) | Top reranked snippets with `chunk_id`, title, URL, domain, score, and a stable `citation_index` |
 | `read_chunk` | `chunk_id` from a previous search | Full chunk text |
 
-**Budget.** Limits live in config (`agent_max_model_turns=4`, `agent_max_tool_calls=6`). Refusal is a boolean on the structured answer, not a magic string in free text. Agent mode needs a chat model (`OPENAI_API_KEY` or Azure). The extractive fallback stays on the pipeline path only.
+**Budget.** Limits live in config (`agent_max_model_turns=4`, `agent_max_tool_calls=6`). Refusal is a boolean on the structured answer, not a string in free text. Agent mode needs a chat model (`OPENAI_API_KEY`). The extractive fallback stays on the pipeline path only.
 
 **Swagger trace.** Call `POST /query` with `"mode": "agent"`. Pipeline responses send `steps: []`. Agent responses look like:
 
@@ -153,7 +153,7 @@ This is unrelated to the healthcare policy documents in the corpus, so the syste
 
 ### **Takeaway 4: An agent is for questions that need more than one retrieval.**
 
-A tool-calling loop is slower and more expensive than the pipeline: each extra search is another retrieve + rerank, and each model turn is another LLM call. It is worth that cost when the user is comparing two schemes or mixing healthcare policy with PDPA. It is not a replacement for the pipeline on single-hop questions, which is why `mode=pipeline` stays the default and the 75-question ablation is still the retrieval baseline.
+A tool-calling loop is slower and more expensive than the pipeline: each extra search is another retrieve + rerank, and each model turn is another LLM call. It is worth the cost when the user is comparing two schemes or mixing healthcare policy with PDPA. It is not a replacement for the pipeline on single-hop questions, which is why `mode=pipeline` stays the default and the 75-question ablation is still the retrieval baseline.
 
 ## Results
 
@@ -316,7 +316,7 @@ python -m src.eval.run_eval --mode agent-compare  # pipeline vs agent on that se
 
 Reports are written to `data/eval/`. Regenerate the pipeline golden set with `python scripts/build_golden_live.py`. The agent set lives in `data/eval/golden_agent.jsonl`.
 
-The 75-question set is mostly single-hop ("What is CHAS?"). It is the right test for retrieval quality, and a bad test for tool use: the "right" agent trajectory is usually one `search_policy`, so a 100% expected-tools score would not mean much. `golden_agent.jsonl` is 10 questions on purpose: comparisons, two-domain (health + PDPA), a few single-hop controls, and two refusals. It scores the **trajectory** (did it search twice, stay in budget, refuse on Apple stock) as well as the answer. `--mode agent-compare` runs the same 10 through the pipeline so you can see where extra searches help.
+The 75-question set is mostly single-hop ("What is CHAS?"). It is the right test for retrieval quality, and a bad test for tool use: the "right" agent trajectory is usually one `search_policy`, so a 100% expected-tools score would not mean much. `golden_agent.jsonl` is 10 questions on purpose: comparisons, two-domain (health + PDPA), a few single-hop controls, and two refusals. It scores the **trajectory** (did it search twice, stay in budget, refuse on Apple stock) as well as the answer. `--mode agent-compare` runs the same 10 through the pipeline so we can see where extra searches are helpful.
 
 ### Reading the reports
 
