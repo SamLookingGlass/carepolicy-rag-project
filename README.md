@@ -17,6 +17,7 @@ Real question-answering systems fail in three places: retrieval accuracy, citati
 - **Verified citations** : every claim in an answer carries a `[1]`-style marker that is checked against the retrieved sources after generation
 - **Refusal gate** : if retrieval confidence is low, the system refuses instead of hallucinating (100% refusal accuracy on the eval set)
 - **Measured quality** : a 75-question golden evaluation set with an ablation study across retrieval modes
+- **Tool-calling agent** : optional `mode=agent` where the model decides when to search, read a chunk, or stop, with a recorded step trace and a hard budget
 
 ## What I built
 
@@ -49,6 +50,63 @@ For each question, the system:
 6. Generates an answer using the retrieved information
 7. Verifies the citations in the generated answer
 8. Returns the answer, citations and confidence information through an API
+
+`POST /query` defaults to this pipeline (`mode=pipeline`) so the published hybrid numbers stay comparable. Set `mode=agent` for the tool-calling path described below.
+
+## Agentic query mode
+
+The pipeline always retrieves once. An agent can retrieve more than once: compare two schemes, or search HealthHub and then PDPC, then stop.
+
+```mermaid
+flowchart TD
+    Q[UserQuestion] --> Decide{ModelDecision}
+    Decide -->|search_policy| Search[HybridRetrieveAndRerank]
+    Decide -->|read_chunk| Read[FullChunkById]
+    Search --> Decide
+    Read --> Decide
+    Decide -->|finalAnswer| Struct[StructuredAnswer]
+    Struct --> Verify[CitationVerifier]
+    Verify --> API[FastAPIResponseWithSteps]
+```
+
+**Tools**
+
+| Tool | Arguments | What it returns |
+| ---- | --------- | --------------- |
+| `search_policy` | `query`, optional `domain` (`healthhub.sg`, `moh.gov.sg`, `hpb.gov.sg`, `pdpc.gov.sg`) | Top reranked snippets with `chunk_id`, title, URL, domain, score, and a stable `citation_index` |
+| `read_chunk` | `chunk_id` from a previous search | Full chunk text |
+
+**Budget.** The loop allows at most 4 model turns and 6 tool calls. If either limit is hit, the system refuses instead of searching forever. The final answer is a structured object (`answer`, `citation_indices`, `refused`) so refusal is a boolean, not a magic string. Citation markers are still checked with the same verifier as the pipeline.
+
+**Swagger trace.** Call `POST /query` with `"mode": "agent"`. Pipeline responses send `steps: []`. Agent responses look like:
+
+```json
+{
+  "question": "Compare CHAS and MediShield Life eligibility.",
+  "mode": "agent"
+}
+```
+
+```json
+{
+  "answer": "CHAS subsidises GP care for Singapore Citizens [1]. MediShield Life covers citizens and PRs [2].",
+  "refused": false,
+  "steps": [
+    {
+      "tool": "search_policy",
+      "arguments": {"query": "CHAS eligibility", "domain": "healthhub.sg"},
+      "observation": {"results": [{"citation_index": 1, "chunk_id": "...", "domain": "healthhub.sg"}]}
+    },
+    {
+      "tool": "search_policy",
+      "arguments": {"query": "MediShield Life eligibility", "domain": "moh.gov.sg"},
+      "observation": {"results": [{"citation_index": 2, "chunk_id": "...", "domain": "moh.gov.sg"}]}
+    }
+  ]
+}
+```
+
+Agent mode needs a chat model (`OPENAI_API_KEY` or Azure). The extractive fallback stays on the pipeline path only.
 
 ## What I learned
 
@@ -142,7 +200,8 @@ flowchart LR
 | LLM            | OpenAI gpt-4o-mini                                |
 | Embeddings     | OpenAI text-embedding-3-small                     |
 | Scraping       | httpx + Playwright                                |
-| Eval           | Custom golden set + ablation runner               |
+| Eval           | Custom golden set + ablation runner + agent trajectory metrics |
+| Agent          | Bounded tool-calling loop (`search_policy`, `read_chunk`) |
 | Config         | pydantic-settings (`.env`)                        |
 
 
@@ -213,11 +272,13 @@ The published eval numbers are measured against the live corpus only.
 ## Run the evaluation
 
 ```powershell
-python -m src.eval.run_eval --mode hybrid      # 75-question golden set
-python -m src.eval.run_eval --mode ablation    # dense vs BM25 vs hybrid
+python -m src.eval.run_eval --mode hybrid         # 75-question golden set
+python -m src.eval.run_eval --mode ablation       # dense vs BM25 vs hybrid
+python -m src.eval.run_eval --mode agent          # 10-question tool-use set
+python -m src.eval.run_eval --mode agent-compare  # pipeline vs agent on that set
 ```
 
-Reports are written to `data/eval/`. Regenerate the golden set with `python scripts/build_golden_live.py`.
+Reports are written to `data/eval/`. Regenerate the pipeline golden set with `python scripts/build_golden_live.py`. The agent set lives in `data/eval/golden_agent.jsonl`.
 
 ### Reading the reports
 
@@ -234,9 +295,14 @@ Metric definitions (computed in `src/eval/metrics.py`):
 | Answer similarity | Embedding cosine similarity between the generated answer and a hand-written reference answer. The correctness proxy; refusal questions excluded. |
 | Confidence        | Top cross-encoder rerank score for the query — the value the refusal gate compares against its threshold.                                        |
 | Latency avg / p95 | End-to-end per-question time, including retrieval, rerank, generation, and verification.                                                         |
+| Tool-call count   | Agent only: number of `search_policy` / `read_chunk` calls recorded in `steps`.                                                                  |
+| Expected tools    | Agent only: whether the trajectory used at least the tools listed on the golden row (multiplicity counts).                                       |
+| Within budget     | Agent only: model turns ≤ 4 and tool calls ≤ 6.                                                                                                  |
 
 
 See the note under [Results](#results) for why the structural metrics saturate at 100% while answer similarity does not.
+
+`report_agent.json` and `agent_compare_report.json` add `avg_tool_calls`, `expected_tools_rate`, and `within_budget_rate`. The 75-question ablation is unchanged and is still the retrieval baseline.
 
 ## Try the API
 
@@ -264,6 +330,15 @@ Do note, there is **one** app credential for callers: `API_KEY`. This is **not**
 { "question": "What is CHAS and who is eligible?" }
 ```
 
+For the agent path (comparison / two-domain questions):
+
+```json
+{
+  "question": "Compare CHAS and MediShield Life: who is eligible for each?",
+  "mode": "agent"
+}
+```
+
   
 Other good test questions:
 
@@ -275,7 +350,7 @@ Other good test questions:
 | `What is the stock price of Apple Inc today?` | `refused: true`                              |
 
 
-Rate limit: **30 requests / minute** per API key. Responses include `answer`, `citations` (with live URLs), `confidence`, `refused`, and `citation_verification`.
+Rate limit: **30 requests / minute** per API key. Responses include `answer`, `citations` (with live URLs), `confidence`, `refused`, `citation_verification`, and `steps` (empty for `mode=pipeline`).
 
 ### Generate your own key
 
@@ -289,7 +364,7 @@ python -c "import secrets; print(secrets.token_urlsafe(16))"
 | Endpoint  | Method | Auth               | Description                             |
 | --------- | ------ | ------------------ | --------------------------------------- |
 | `/health` | GET    | none               | Status + active LLM provider            |
-| `/query`  | POST   | `X-API-Key` header | RAG query with citations (rate-limited) |
+| `/query`  | POST   | `X-API-Key` header | RAG query with citations (rate-limited). `mode=pipeline` (default) or `mode=agent` |
 
 
 ## Project structure
@@ -299,7 +374,8 @@ src/
 ├── ingestion/     fetch (httpx + Playwright), parse, chunk
 ├── retrieval/     BM25, Qdrant vector store, RRF hybrid, cross-encoder rerank
 ├── generation/    prompts, answer generation, citation verification
-├── eval/          golden-set runner, metrics
+├── agent/         tool-calling loop (search_policy, read_chunk)
+├── eval/          golden-set runner, metrics, agent trajectory scoring
 ├── api/           FastAPI app
 └── pipeline.py    end-to-end orchestration
 scripts/           corpus scraping, ingestion, eval tooling
@@ -316,6 +392,8 @@ There are still several limitations in the current version.
 - The evaluation set is relatively small.
 - Many evaluation questions are single-hop and close to the wording of the source documents.
 - The current answer similarity score is around 0.75, so there is still room to improve answer quality.
+- Citation checks still only prove that a `[N]` marker points at a retrieved chunk, not that the sentence is entailed by that chunk.
+- The agent eval set is 10 questions on purpose. It measures tool use, budget, and refusal — not a replacement for the 75-question retrieval ablation.
 
 
 

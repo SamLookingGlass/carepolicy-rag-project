@@ -9,7 +9,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from src.config import EVAL_DIR
+from collections import Counter
+
+from src.config import EVAL_DIR, get_settings
 from src.generation.citations import verify_citations
 from src.pipeline import QueryResult
 from src.retrieval.embeddings import embed_texts
@@ -104,3 +106,48 @@ def summarize(results: list[dict]) -> dict:
         "avg_latency_ms": sum(r["latency_ms"] for r in results) / n,
         "p95_latency_ms": sorted(r["latency_ms"] for r in results)[int(0.95 * (n - 1))],
     }
+
+
+def evaluate_agent_result(item: dict, result: QueryResult) -> dict:
+    """Score an agent (or pipeline) result plus trajectory checks."""
+    row = evaluate_result(item, result)
+    steps = result.steps or []
+    names = [s.get("tool", "") for s in steps]
+    expected = item.get("expected_tools") or []
+    got = Counter(names)
+    need = Counter(expected)
+    tools_ok = all(got[name] >= count for name, count in need.items())
+    tool_call_count = getattr(result, "tool_call_count", len(steps))
+    model_turns = getattr(result, "model_turns", 0)
+    settings = get_settings()
+    within_budget = (
+        model_turns <= settings.agent_max_model_turns
+        and tool_call_count <= settings.agent_max_tool_calls
+    )
+    row.update(
+        {
+            "tool_call_count": tool_call_count,
+            "model_turns": model_turns,
+            "tools_used": names,
+            "expected_tools": expected,
+            "expected_tools_used": tools_ok,
+            "within_budget": within_budget,
+        }
+    )
+    return row
+
+
+def summarize_agent(results: list[dict]) -> dict:
+    """Pipeline summary plus tool-use and budget rates."""
+    summary = summarize(results)
+    if not results:
+        return summary
+    n = len(results)
+    summary.update(
+        {
+            "avg_tool_calls": sum(r.get("tool_call_count", 0) for r in results) / n,
+            "expected_tools_rate": sum(1 for r in results if r.get("expected_tools_used")) / n,
+            "within_budget_rate": sum(1 for r in results if r.get("within_budget")) / n,
+        }
+    )
+    return summary

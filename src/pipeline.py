@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import os
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from src.config import get_settings
 from src.generation.answer import generate_answer
@@ -47,6 +47,9 @@ class QueryResult:
     refused: bool
     citation_verification: dict
     retrieved_chunks: list[dict]
+    steps: list[dict] = field(default_factory=list)
+    model_turns: int = 0
+    tool_call_count: int = 0
 
 
 def _configure_langsmith() -> None:

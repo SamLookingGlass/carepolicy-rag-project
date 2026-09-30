@@ -4,24 +4,26 @@ from __future__ import annotations
 
 import time
 from collections import defaultdict
-from typing import Literal
+from typing import Any, Literal
 
 from fastapi import Depends, FastAPI, HTTPException, Security
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field
 
+from src.agent.loop import AgentUnavailableError, PolicyAgent
 from src.config import get_settings
 from src.llm_provider import active_provider
 from src.pipeline import RAGPipeline
 
 app = FastAPI(
     title="CarePolicy RAG",
-    description="Healthcare policy RAG with hybrid retrieval and verified citations",
-    version="0.1.0",
+    description="Healthcare policy RAG with hybrid retrieval, verified citations, and a tool-calling agent",
+    version="0.2.0",
 )
 
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 _pipeline: RAGPipeline | None = None
+_agent: PolicyAgent | None = None
 _rate_limit_store: dict[str, list[float]] = defaultdict(list)
 
 
@@ -30,6 +32,14 @@ def get_pipeline() -> RAGPipeline:
     if _pipeline is None:
         _pipeline = RAGPipeline()
     return _pipeline
+
+
+def get_agent(pipeline: RAGPipeline | None = None) -> PolicyAgent:
+    global _agent
+    if _agent is None:
+        retriever = (pipeline or get_pipeline()).retriever
+        _agent = PolicyAgent(retriever=retriever)
+    return _agent
 
 
 def verify_api_key(api_key: str | None = Security(api_key_header)) -> None:
@@ -62,6 +72,7 @@ class QueryRequest(BaseModel):
     question: str = Field(..., min_length=3, max_length=2000)
     retrieval_mode: Literal["hybrid", "dense", "bm25"] = "hybrid"
     skip_rerank: bool = False
+    mode: Literal["pipeline", "agent"] = "pipeline"
 
 
 class CitationResponse(BaseModel):
@@ -73,6 +84,12 @@ class CitationResponse(BaseModel):
     snippet: str
 
 
+class AgentStepResponse(BaseModel):
+    tool: str
+    arguments: dict
+    observation: Any
+
+
 class QueryResponse(BaseModel):
     answer: str
     citations: list[CitationResponse]
@@ -82,6 +99,7 @@ class QueryResponse(BaseModel):
     chunks_used: int
     refused: bool
     citation_verification: dict
+    steps: list[AgentStepResponse] = []
 
 
 @app.get("/health")
@@ -99,11 +117,18 @@ def health():
     dependencies=[Depends(verify_api_key), Depends(make_rate_limiter(limit=30, window=60))],
 )
 def query(request: QueryRequest, pipeline: RAGPipeline = Depends(get_pipeline)):
-    result = pipeline.query(
-        question=request.question,
-        retrieval_mode=request.retrieval_mode,
-        skip_rerank=request.skip_rerank,
-    )
+    if request.mode == "agent":
+        try:
+            agent = get_agent(pipeline)
+        except AgentUnavailableError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+        result = agent.query(request.question)
+    else:
+        result = pipeline.query(
+            question=request.question,
+            retrieval_mode=request.retrieval_mode,
+            skip_rerank=request.skip_rerank,
+        )
     return QueryResponse(
         answer=result.answer,
         citations=[CitationResponse(**c) for c in result.citations],
@@ -113,6 +138,7 @@ def query(request: QueryRequest, pipeline: RAGPipeline = Depends(get_pipeline)):
         chunks_used=result.chunks_used,
         refused=result.refused,
         citation_verification=result.citation_verification,
+        steps=[AgentStepResponse(**s) for s in result.steps],
     )
 
 
@@ -122,4 +148,5 @@ def root():
         "service": "CarePolicy RAG",
         "docs": "/docs",
         "endpoints": ["/health", "/query"],
+        "modes": ["pipeline", "agent"],
     }

@@ -51,6 +51,10 @@ class Settings(BaseSettings):
     top_k_rerank: int = 5
     rerank_score_threshold: float = 0.25
 
+    # Bounded agent loop (tool-calling mode)
+    agent_max_model_turns: int = 4
+    agent_max_tool_calls: int = 6
+
     api_key: str = "dev-key-change-me"
 
     # Hugging Face Hub (cross-encoder reranker downloads)

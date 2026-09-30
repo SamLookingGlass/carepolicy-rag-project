@@ -71,3 +71,7 @@ class HybridRetriever:
         dense_results = dense_search(query, top_k=k)
         bm25_results = self.bm25.search(query, top_k=k)
         return reciprocal_rank_fusion([dense_results, bm25_results])[:k]
+
+    def get_chunk(self, chunk_id: str) -> dict | None:
+        """Return the full stored chunk for a chunk_id, or None if it is unknown."""
+        return self.bm25._id_to_chunk.get(chunk_id)
