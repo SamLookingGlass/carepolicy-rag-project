@@ -11,19 +11,21 @@ from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field
 
 from src.agent.loop import AgentUnavailableError, PolicyAgent
+from src.agent.workflow import MultiAgentWorkflow
 from src.config import get_settings
 from src.llm_provider import active_provider
 from src.pipeline import RAGPipeline
 
 app = FastAPI(
     title="CarePolicy RAG",
-    description="Healthcare policy RAG with hybrid retrieval, verified citations, and a tool-calling agent",
-    version="0.2.0",
+    description="Healthcare policy RAG with hybrid retrieval, a tool-calling agent, and a multi-agent workflow",
+    version="0.3.0",
 )
 
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 _pipeline: RAGPipeline | None = None
 _agent: PolicyAgent | None = None
+_multi: MultiAgentWorkflow | None = None
 _rate_limit_store: dict[str, list[float]] = defaultdict(list)
 
 
@@ -40,6 +42,14 @@ def get_agent(pipeline: RAGPipeline | None = None) -> PolicyAgent:
         retriever = (pipeline or get_pipeline()).retriever
         _agent = PolicyAgent(retriever=retriever)
     return _agent
+
+
+def get_multi(pipeline: RAGPipeline | None = None) -> MultiAgentWorkflow:
+    global _multi
+    if _multi is None:
+        retriever = (pipeline or get_pipeline()).retriever
+        _multi = MultiAgentWorkflow(retriever=retriever)
+    return _multi
 
 
 def verify_api_key(api_key: str | None = Security(api_key_header)) -> None:
@@ -72,7 +82,7 @@ class QueryRequest(BaseModel):
     question: str = Field(..., min_length=3, max_length=2000)
     retrieval_mode: Literal["hybrid", "dense", "bm25"] = "hybrid"
     skip_rerank: bool = False
-    mode: Literal["pipeline", "agent"] = "pipeline"
+    mode: Literal["pipeline", "agent", "multi"] = "pipeline"
 
 
 class CitationResponse(BaseModel):
@@ -85,9 +95,16 @@ class CitationResponse(BaseModel):
 
 
 class AgentStepResponse(BaseModel):
-    tool: str
-    arguments: dict
-    observation: Any
+    tool: str = ""
+    arguments: dict = {}
+    observation: Any = None
+    request_id: str | None = None
+    step_number: int | None = None
+    agent: str | None = None
+    latency_ms: float | None = None
+    tokens: int = 0
+    status: str = "ok"
+    retry: bool = False
 
 
 class QueryResponse(BaseModel):
@@ -100,6 +117,11 @@ class QueryResponse(BaseModel):
     refused: bool
     citation_verification: dict
     steps: list[AgentStepResponse] = []
+    intent: str = ""
+    trace: str = ""
+    tokens: int = 0
+    estimated_cost_usd: float = 0.0
+    retry_count: int = 0
 
 
 @app.get("/health")
@@ -123,6 +145,12 @@ def query(request: QueryRequest, pipeline: RAGPipeline = Depends(get_pipeline)):
         except AgentUnavailableError as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
         result = agent.query(request.question)
+    elif request.mode == "multi":
+        try:
+            workflow = get_multi(pipeline)
+        except AgentUnavailableError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+        result = workflow.query(request.question)
     else:
         result = pipeline.query(
             question=request.question,
@@ -139,6 +167,11 @@ def query(request: QueryRequest, pipeline: RAGPipeline = Depends(get_pipeline)):
         refused=result.refused,
         citation_verification=result.citation_verification,
         steps=[AgentStepResponse(**s) for s in result.steps],
+        intent=result.intent,
+        trace=result.trace_text,
+        tokens=result.tokens,
+        estimated_cost_usd=result.estimated_cost_usd,
+        retry_count=result.retry_count,
     )
 
 
@@ -148,5 +181,5 @@ def root():
         "service": "CarePolicy RAG",
         "docs": "/docs",
         "endpoints": ["/health", "/query"],
-        "modes": ["pipeline", "agent"],
+        "modes": ["pipeline", "agent", "multi"],
     }

@@ -7,13 +7,16 @@ import json
 from pathlib import Path
 
 from src.agent.loop import PolicyAgent
+from src.agent.workflow import MultiAgentWorkflow
 from src.config import EVAL_DIR
 from src.eval.metrics import (
     evaluate_agent_result,
+    evaluate_multi_result,
     evaluate_result,
     load_golden,
     summarize,
     summarize_agent,
+    summarize_multi,
 )
 from src.pipeline import RAGPipeline
 
@@ -94,12 +97,62 @@ def run_agent_compare(golden_path: Path | None = None) -> dict:
     return report
 
 
+def run_multi_eval(golden_path: Path | None = None, output_path: Path | None = None) -> dict:
+    """Run the agent golden set through the multi-agent workflow."""
+    items = load_golden(golden_path or (EVAL_DIR / "golden_agent.jsonl"))
+    workflow = MultiAgentWorkflow()
+    results = [evaluate_multi_result(item, workflow.query(item["question"])) for item in items]
+    summary = summarize_multi(results)
+    summary["retrieval_mode"] = "multi"
+    report = {"summary": summary, "results": results}
+    out = output_path or (EVAL_DIR / "report_multi.json")
+    out.write_text(json.dumps(report, indent=2), encoding="utf-8")
+    return report
+
+
+def run_architecture_compare(golden_path: Path | None = None) -> dict:
+    """Compare pipeline, single-agent, and multi-agent on the agent golden set."""
+    items = load_golden(golden_path or (EVAL_DIR / "golden_agent.jsonl"))
+    pipeline = RAGPipeline()
+    agent = PolicyAgent()
+    workflow = MultiAgentWorkflow()
+    pipeline_results = []
+    agent_results = []
+    multi_results = []
+    for item in items:
+        pipeline_results.append(evaluate_multi_result(item, pipeline.query(item["question"])))
+        agent_results.append(evaluate_multi_result(item, agent.query(item["question"])))
+        multi_results.append(evaluate_multi_result(item, workflow.query(item["question"])))
+
+    report = {
+        "pipeline": summarize_multi(pipeline_results),
+        "agent": summarize_multi(agent_results),
+        "multi": summarize_multi(multi_results),
+        "pipeline_results": pipeline_results,
+        "agent_results": agent_results,
+        "multi_results": multi_results,
+    }
+    (EVAL_DIR / "architecture_compare.json").write_text(
+        json.dumps(report, indent=2), encoding="utf-8"
+    )
+    return report
+
+
 def main():
     parser = argparse.ArgumentParser(description="Run CarePolicy RAG evaluation")
     parser.add_argument(
         "--mode",
         default="hybrid",
-        choices=["hybrid", "dense", "bm25", "ablation", "agent", "agent-compare"],
+        choices=[
+            "hybrid",
+            "dense",
+            "bm25",
+            "ablation",
+            "agent",
+            "agent-compare",
+            "multi",
+            "architecture-compare",
+        ],
     )
     parser.add_argument("--golden", type=Path, default=None)
     args = parser.parse_args()
@@ -113,6 +166,21 @@ def main():
     elif args.mode == "agent-compare":
         report = run_agent_compare(args.golden)
         print(json.dumps({"pipeline": report["pipeline"], "agent": report["agent"]}, indent=2))
+    elif args.mode == "multi":
+        report = run_multi_eval(args.golden)
+        print(json.dumps(report["summary"], indent=2))
+    elif args.mode == "architecture-compare":
+        report = run_architecture_compare(args.golden)
+        print(
+            json.dumps(
+                {
+                    "pipeline": report["pipeline"],
+                    "agent": report["agent"],
+                    "multi": report["multi"],
+                },
+                indent=2,
+            )
+        )
     else:
         report = run_eval(args.golden, retrieval_mode=args.mode)
         print(json.dumps(report["summary"], indent=2))

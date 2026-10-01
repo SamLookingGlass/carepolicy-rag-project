@@ -50,6 +50,12 @@ class QueryResult:
     steps: list[dict] = field(default_factory=list)
     model_turns: int = 0
     tool_call_count: int = 0
+    intent: str = ""
+    trace_text: str = ""
+    tokens: int = 0
+    estimated_cost_usd: float = 0.0
+    retry_count: int = 0
+    supported_claim_rate: float | None = None
 
 
 def _configure_langsmith() -> None:

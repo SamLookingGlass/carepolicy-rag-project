@@ -1,12 +1,12 @@
 {
   "summary": {
     "total": 75,
-    "success_rate": 0.9733333333333334,
-    "refusal_accuracy": 0.9733333333333334,
+    "success_rate": 0.9333333333333333,
+    "refusal_accuracy": 0.9333333333333333,
     "avg_citation_accuracy": 1.0,
-    "avg_answer_similarity": 0.7327213955033907,
-    "avg_latency_ms": 5171.457395998489,
-    "p95_latency_ms": 7019.405600003665,
+    "avg_answer_similarity": 0.7024540500261907,
+    "avg_latency_ms": 2137.602460005631,
+    "p95_latency_ms": 3370.21810002625,
     "retrieval_mode": "bm25"
   },
   "results": [
@@ -18,10 +18,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.8422675190810152,
+      "answer_similarity": 0.8327355384202676,
       "domain_match": true,
-      "latency_ms": 5437.894000002416,
-      "confidence": 4.306164264678955
+      "latency_ms": 2504.559800028801,
+      "confidence": 4.306164741516113
     },
     {
       "id": "q002",
@@ -31,10 +31,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.6744064025995062,
+      "answer_similarity": 0.6680137405795711,
       "domain_match": true,
-      "latency_ms": 4858.23659999005,
-      "confidence": 7.289129257202148
+      "latency_ms": 2069.2521000746638,
+      "confidence": 7.289130210876465
     },
     {
       "id": "q003",
@@ -44,10 +44,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.8989859909855817,
+      "answer_similarity": 0.8990198793320582,
       "domain_match": true,
-      "latency_ms": 4860.621899992111,
-      "confidence": 5.744797229766846
+      "latency_ms": 2555.946100037545,
+      "confidence": 5.744800567626953
     },
     {
       "id": "q006",
@@ -57,10 +57,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.8437832592045801,
+      "answer_similarity": 0.8429442626384321,
       "domain_match": true,
-      "latency_ms": 5391.976500002784,
-      "confidence": 4.466744422912598
+      "latency_ms": 2732.607899932191,
+      "confidence": 4.466745376586914
     },
     {
       "id": "q008",
@@ -72,8 +72,8 @@
       "citation_accuracy": 1.0,
       "answer_similarity": 0.6365915029996455,
       "domain_match": true,
-      "latency_ms": 4568.742100003874,
-      "confidence": 4.488036155700684
+      "latency_ms": 1782.87069988437,
+      "confidence": 4.488036632537842
     },
     {
       "id": "q016",
@@ -83,10 +83,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.7269761164297511,
+      "answer_similarity": 0.7469929022277337,
       "domain_match": true,
-      "latency_ms": 5307.534999999916,
-      "confidence": 4.812961578369141
+      "latency_ms": 2366.731100017205,
+      "confidence": 4.812963485717773
     },
     {
       "id": "q017",
@@ -96,10 +96,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.7352559496176709,
+      "answer_similarity": 0.7325901080729126,
       "domain_match": true,
-      "latency_ms": 5692.194900009781,
-      "confidence": 7.064962863922119
+      "latency_ms": 2651.833900017664,
+      "confidence": 7.064963340759277
     },
     {
       "id": "q018",
@@ -109,10 +109,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.7568362160740448,
+      "answer_similarity": 0.7573632025594065,
       "domain_match": true,
-      "latency_ms": 6866.567399993073,
-      "confidence": 8.156187057495117
+      "latency_ms": 3672.030200017616,
+      "confidence": 8.190343856811523
     },
     {
       "id": "q019",
@@ -122,10 +122,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.8008196929716136,
+      "answer_similarity": 0.8061416662917169,
       "domain_match": true,
-      "latency_ms": 7019.405600003665,
-      "confidence": 6.689990520477295
+      "latency_ms": 3815.877899993211,
+      "confidence": 6.685562610626221
     },
     {
       "id": "q056",
@@ -135,10 +135,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.8162360102631957,
+      "answer_similarity": 0.8161829898904555,
       "domain_match": true,
-      "latency_ms": 4753.998500003945,
-      "confidence": 6.045662879943848
+      "latency_ms": 1752.7813001070172,
+      "confidence": 5.850688934326172
     },
     {
       "id": "q057",
@@ -148,10 +148,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.9052791728412418,
+      "answer_similarity": 0.9052978185931784,
       "domain_match": true,
-      "latency_ms": 4516.779799989308,
-      "confidence": 6.897123336791992
+      "latency_ms": 1683.3790000528097,
+      "confidence": 6.8729963302612305
     },
     {
       "id": "q067",
@@ -161,10 +161,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.7753854997843357,
+      "answer_similarity": 0.7743599049071235,
       "domain_match": true,
-      "latency_ms": 5383.8324999960605,
-      "confidence": 4.431732654571533
+      "latency_ms": 2772.1937999594957,
+      "confidence": 4.431734085083008
     },
     {
       "id": "q068",
@@ -174,10 +174,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.7098394498468549,
+      "answer_similarity": 0.7040986909599214,
       "domain_match": true,
-      "latency_ms": 6482.693600002676,
-      "confidence": 6.718457221984863
+      "latency_ms": 2985.5807998683304,
+      "confidence": 6.718456268310547
     },
     {
       "id": "q074",
@@ -187,23 +187,23 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.7773869391546335,
+      "answer_similarity": 0.779935428432319,
       "domain_match": true,
-      "latency_ms": 5857.480899998336,
-      "confidence": 7.608611106872559
+      "latency_ms": 3088.5286000557244,
+      "confidence": 7.590327262878418
     },
     {
       "id": "q004",
       "question": "What conditions does Healthier SG Screening cover?",
       "category": "screening",
-      "success": true,
-      "refused": false,
+      "success": false,
+      "refused": true,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.8879552090935442,
-      "domain_match": true,
-      "latency_ms": 6663.673200004268,
-      "confidence": 5.545434474945068
+      "answer_similarity": 0.08704612528637805,
+      "domain_match": false,
+      "latency_ms": 1439.5994001533836,
+      "confidence": 0.3
     },
     {
       "id": "q005",
@@ -213,10 +213,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.7881866559354398,
+      "answer_similarity": 0.7881767981872021,
       "domain_match": true,
-      "latency_ms": 6614.0854999976,
-      "confidence": 7.461057662963867
+      "latency_ms": 1734.3683000653982,
+      "confidence": 7.091170310974121
     },
     {
       "id": "q027",
@@ -226,10 +226,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.7362177128898628,
+      "answer_similarity": 0.7218059149581242,
       "domain_match": true,
-      "latency_ms": 4718.593500001589,
-      "confidence": 5.332070350646973
+      "latency_ms": 1650.0303000211716,
+      "confidence": 5.401204586029053
     },
     {
       "id": "q028",
@@ -241,8 +241,8 @@
       "citation_accuracy": 1.0,
       "answer_similarity": 0.8512932472700964,
       "domain_match": true,
-      "latency_ms": 5314.2034000047715,
-      "confidence": 6.404719352722168
+      "latency_ms": 2022.5387997925282,
+      "confidence": 7.393385887145996
     },
     {
       "id": "q030",
@@ -254,8 +254,8 @@
       "citation_accuracy": 1.0,
       "answer_similarity": 0.9519787222909513,
       "domain_match": true,
-      "latency_ms": 4505.725600000005,
-      "confidence": 8.080432891845703
+      "latency_ms": 1823.9929000847042,
+      "confidence": 4.977138519287109
     },
     {
       "id": "q071",
@@ -265,23 +265,23 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.8857142638164925,
+      "answer_similarity": 0.875391402363919,
       "domain_match": true,
-      "latency_ms": 4955.503699995461,
-      "confidence": 6.861346244812012
+      "latency_ms": 1866.8877999298275,
+      "confidence": 6.43242073059082
     },
     {
       "id": "q012",
       "question": "What lifestyle changes help prevent type 2 diabetes?",
       "category": "prevention",
-      "success": true,
-      "refused": false,
+      "success": false,
+      "refused": true,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.5555814166606613,
-      "domain_match": true,
-      "latency_ms": 4942.826700003934,
-      "confidence": 1.9418621063232422
+      "answer_similarity": 0.02279234995376547,
+      "domain_match": false,
+      "latency_ms": 569.4823998492211,
+      "confidence": -0.9447214603424072
     },
     {
       "id": "q022",
@@ -291,10 +291,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.6863342628074223,
+      "answer_similarity": 0.7064393977409844,
       "domain_match": true,
-      "latency_ms": 6899.485200003255,
-      "confidence": 6.219447135925293
+      "latency_ms": 2115.548999980092,
+      "confidence": 6.255373954772949
     },
     {
       "id": "q023",
@@ -304,10 +304,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.7397321566663058,
+      "answer_similarity": 0.7413546650444949,
       "domain_match": true,
-      "latency_ms": 5288.076699987869,
-      "confidence": 1.3608639240264893
+      "latency_ms": 2973.465100163594,
+      "confidence": 1.8827705383300781
     },
     {
       "id": "q024",
@@ -317,9 +317,9 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.8376028984226062,
+      "answer_similarity": 0.8356277157211595,
       "domain_match": true,
-      "latency_ms": 5359.250699999393,
+      "latency_ms": 1972.4765999708325,
       "confidence": 8.23542308807373
     },
     {
@@ -330,23 +330,23 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.7491711723630209,
+      "answer_similarity": 0.7207068969433366,
       "domain_match": true,
-      "latency_ms": 5105.446700006723,
-      "confidence": 1.4150341749191284
+      "latency_ms": 2041.106300195679,
+      "confidence": 3.2260148525238037
     },
     {
       "id": "q026",
       "question": "What is stroke prevention advice?",
       "category": "prevention",
-      "success": true,
-      "refused": false,
+      "success": false,
+      "refused": true,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.5245845302304282,
-      "domain_match": true,
-      "latency_ms": 5360.064899999998,
-      "confidence": 3.425288677215576
+      "answer_similarity": 0.028856499683116852,
+      "domain_match": false,
+      "latency_ms": 570.633800001815,
+      "confidence": -0.12105259299278259
     },
     {
       "id": "q029",
@@ -356,10 +356,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.6059512267481358,
+      "answer_similarity": 0.6060282464998041,
       "domain_match": true,
-      "latency_ms": 5784.680299999309,
-      "confidence": 5.473918914794922
+      "latency_ms": 2510.818399954587,
+      "confidence": 5.559035301208496
     },
     {
       "id": "q058",
@@ -369,10 +369,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.7352819651100594,
+      "answer_similarity": 0.7322932934531624,
       "domain_match": true,
-      "latency_ms": 7313.991299990448,
-      "confidence": 5.508219242095947
+      "latency_ms": 4225.84700002335,
+      "confidence": 5.508220672607422
     },
     {
       "id": "q061",
@@ -382,10 +382,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.6700125528362827,
+      "answer_similarity": 0.5315501348454335,
       "domain_match": true,
-      "latency_ms": 4756.069000010029,
-      "confidence": 4.028326988220215
+      "latency_ms": 2149.2288999725133,
+      "confidence": 4.028327941894531
     },
     {
       "id": "q075",
@@ -395,10 +395,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.7944304118196398,
+      "answer_similarity": 0.7944207632829511,
       "domain_match": true,
-      "latency_ms": 5267.282399989199,
-      "confidence": 3.905510663986206
+      "latency_ms": 2036.2720000557601,
+      "confidence": 3.917072057723999
     },
     {
       "id": "q032",
@@ -408,10 +408,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.8084460006627535,
+      "answer_similarity": 0.8100292883706045,
       "domain_match": true,
-      "latency_ms": 5154.3267000088235,
-      "confidence": 5.041751861572266
+      "latency_ms": 2399.6830000542104,
+      "confidence": 5.111944675445557
     },
     {
       "id": "q033",
@@ -423,7 +423,7 @@
       "citation_accuracy": 1.0,
       "answer_similarity": 0.1146357509803477,
       "domain_match": false,
-      "latency_ms": 4319.039199996041,
+      "latency_ms": 1433.8140999898314,
       "confidence": 0.3
     },
     {
@@ -434,10 +434,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.7318466668553927,
+      "answer_similarity": 0.7468175973683898,
       "domain_match": true,
-      "latency_ms": 4670.071400003508,
-      "confidence": 4.604733467102051
+      "latency_ms": 1532.66750019975,
+      "confidence": 4.293159008026123
     },
     {
       "id": "q020",
@@ -447,10 +447,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.6294375884094507,
+      "answer_similarity": 0.6343931593845177,
       "domain_match": true,
-      "latency_ms": 5808.295499999076,
-      "confidence": 3.776264190673828
+      "latency_ms": 3136.9855999946594,
+      "confidence": 3.714171886444092
     },
     {
       "id": "q021",
@@ -460,10 +460,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.8806291199731775,
+      "answer_similarity": 0.8853010401807926,
       "domain_match": true,
-      "latency_ms": 5018.9943999866955,
-      "confidence": 5.666259765625
+      "latency_ms": 2068.2626999914646,
+      "confidence": 4.016449451446533
     },
     {
       "id": "q039",
@@ -473,10 +473,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.7168394453496301,
+      "answer_similarity": 0.6535747390432498,
       "domain_match": true,
-      "latency_ms": 6554.817700001877,
-      "confidence": 5.300779342651367
+      "latency_ms": 2051.192599814385,
+      "confidence": 5.300778388977051
     },
     {
       "id": "q040",
@@ -486,10 +486,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.6704006254428586,
+      "answer_similarity": 0.6855925470936416,
       "domain_match": true,
-      "latency_ms": 5631.964999993215,
-      "confidence": 6.277042388916016
+      "latency_ms": 2378.8519999943674,
+      "confidence": 6.333281517028809
     },
     {
       "id": "q041",
@@ -499,10 +499,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.84701197740514,
+      "answer_similarity": 0.833549101687984,
       "domain_match": true,
-      "latency_ms": 5911.622799991164,
-      "confidence": 5.580951690673828
+      "latency_ms": 2753.321500029415,
+      "confidence": 5.499146461486816
     },
     {
       "id": "q042",
@@ -512,9 +512,9 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.7605547706522084,
+      "answer_similarity": 0.7504067042261982,
       "domain_match": true,
-      "latency_ms": 5474.426200002199,
+      "latency_ms": 2998.8166000694036,
       "confidence": 4.885149955749512
     },
     {
@@ -525,10 +525,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.646964050488141,
+      "answer_similarity": 0.6445654059965704,
       "domain_match": true,
-      "latency_ms": 5051.167799989344,
-      "confidence": 2.694711208343506
+      "latency_ms": 2232.8873998485506,
+      "confidence": 2.8721747398376465
     },
     {
       "id": "q044",
@@ -538,10 +538,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.6876355778976768,
+      "answer_similarity": 0.7045453067928669,
       "domain_match": true,
-      "latency_ms": 5552.599899994675,
-      "confidence": 6.918087959289551
+      "latency_ms": 2513.739800080657,
+      "confidence": 6.918088436126709
     },
     {
       "id": "q069",
@@ -551,10 +551,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.617943239806916,
+      "answer_similarity": 0.7588384074446645,
       "domain_match": true,
-      "latency_ms": 5126.78199999209,
-      "confidence": 7.292351722717285
+      "latency_ms": 2512.449599802494,
+      "confidence": 7.176701545715332
     },
     {
       "id": "q070",
@@ -564,10 +564,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.7160883721528474,
+      "answer_similarity": 0.6981547341924894,
       "domain_match": true,
-      "latency_ms": 4626.622299998417,
-      "confidence": 2.0078158378601074
+      "latency_ms": 3018.8851000275463,
+      "confidence": 2.0078163146972656
     },
     {
       "id": "q073",
@@ -577,10 +577,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.7045348640462693,
+      "answer_similarity": 0.6454594034603928,
       "domain_match": true,
-      "latency_ms": 4605.437799997162,
-      "confidence": 2.0950939655303955
+      "latency_ms": 1852.9798998497427,
+      "confidence": 2.205183744430542
     },
     {
       "id": "q034",
@@ -590,10 +590,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.7257304603463708,
+      "answer_similarity": 0.7287764996214644,
       "domain_match": true,
-      "latency_ms": 5073.671200007084,
-      "confidence": 7.911564826965332
+      "latency_ms": 1950.650200014934,
+      "confidence": 7.911563873291016
     },
     {
       "id": "q035",
@@ -603,9 +603,9 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.7822197073735744,
+      "answer_similarity": 0.7938628154990585,
       "domain_match": true,
-      "latency_ms": 5175.7925000129035,
+      "latency_ms": 2070.6171998754144,
       "confidence": 2.940156936645508
     },
     {
@@ -616,10 +616,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.8188591263015871,
+      "answer_similarity": 0.8042968989478737,
       "domain_match": true,
-      "latency_ms": 7029.78759999678,
-      "confidence": 7.016341686248779
+      "latency_ms": 3269.992900080979,
+      "confidence": 7.013716697692871
     },
     {
       "id": "q060",
@@ -631,8 +631,8 @@
       "citation_accuracy": 1.0,
       "answer_similarity": 0.7336930047757276,
       "domain_match": true,
-      "latency_ms": 7136.86620000226,
-      "confidence": 2.526254177093506
+      "latency_ms": 2456.858899910003,
+      "confidence": 2.5262560844421387
     },
     {
       "id": "q062",
@@ -642,10 +642,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.8511338205363008,
+      "answer_similarity": 0.841307375794965,
       "domain_match": true,
-      "latency_ms": 5088.120799991884,
-      "confidence": 6.01135778427124
+      "latency_ms": 2808.504599845037,
+      "confidence": 5.537692070007324
     },
     {
       "id": "q063",
@@ -657,8 +657,8 @@
       "citation_accuracy": 1.0,
       "answer_similarity": 0.12879628471688337,
       "domain_match": false,
-      "latency_ms": 3223.4198999940418,
-      "confidence": -0.945544958114624
+      "latency_ms": 567.405000096187,
+      "confidence": -0.9455439448356628
     },
     {
       "id": "q064",
@@ -668,10 +668,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.7843018006995298,
+      "answer_similarity": 0.7905081391502841,
       "domain_match": true,
-      "latency_ms": 5642.669799999567,
-      "confidence": 5.572219371795654
+      "latency_ms": 2310.2706000208855,
+      "confidence": 5.620321273803711
     },
     {
       "id": "q065",
@@ -681,10 +681,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.742071093919252,
+      "answer_similarity": 0.7420469637011401,
       "domain_match": true,
-      "latency_ms": 6224.7367999952985,
-      "confidence": 6.378163814544678
+      "latency_ms": 3071.5456001926214,
+      "confidence": 6.378164291381836
     },
     {
       "id": "q066",
@@ -694,10 +694,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.6311374018177854,
+      "answer_similarity": 0.6474722927159734,
       "domain_match": true,
-      "latency_ms": 5496.989499995834,
-      "confidence": 3.5771965980529785
+      "latency_ms": 2487.1298999059945,
+      "confidence": 3.5771963596343994
     },
     {
       "id": "q015",
@@ -707,10 +707,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.7130458076824673,
+      "answer_similarity": 0.7207568257393874,
       "domain_match": true,
-      "latency_ms": 5388.825199988787,
-      "confidence": 5.416475772857666
+      "latency_ms": 3370.21810002625,
+      "confidence": 5.416477680206299
     },
     {
       "id": "q046",
@@ -720,10 +720,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.8090922880928865,
+      "answer_similarity": 0.7842313833034068,
       "domain_match": true,
-      "latency_ms": 5893.981899993378,
-      "confidence": 3.952608346939087
+      "latency_ms": 3025.5841999314725,
+      "confidence": 3.952608823776245
     },
     {
       "id": "q047",
@@ -733,10 +733,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.6077697949281667,
+      "answer_similarity": 0.5961609446525704,
       "domain_match": true,
-      "latency_ms": 6059.8738999979105,
-      "confidence": 4.537792205810547
+      "latency_ms": 2741.7053000535816,
+      "confidence": 3.7774038314819336
     },
     {
       "id": "q072",
@@ -746,10 +746,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.8161626273337318,
+      "answer_similarity": 0.8123299996257373,
       "domain_match": true,
-      "latency_ms": 5427.022300005774,
-      "confidence": 4.9935150146484375
+      "latency_ms": 2661.328700138256,
+      "confidence": 4.993515968322754
     },
     {
       "id": "q007",
@@ -759,10 +759,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.7045906721098666,
+      "answer_similarity": 0.7426719834068132,
       "domain_match": true,
-      "latency_ms": 5324.609100003727,
-      "confidence": 3.2834482192993164
+      "latency_ms": 5139.013400068507,
+      "confidence": 3.58856463432312
     },
     {
       "id": "q011",
@@ -772,10 +772,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.8560925557976872,
+      "answer_similarity": 0.8337947172336843,
       "domain_match": true,
-      "latency_ms": 4970.914599995012,
-      "confidence": 3.9647631645202637
+      "latency_ms": 2694.2702000960708,
+      "confidence": 4.081804275512695
     },
     {
       "id": "q013",
@@ -785,10 +785,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.7049086908143083,
+      "answer_similarity": 0.7459347599857427,
       "domain_match": true,
-      "latency_ms": 5128.208900001482,
-      "confidence": 2.226533889770508
+      "latency_ms": 3342.43470011279,
+      "confidence": 2.3072686195373535
     },
     {
       "id": "q048",
@@ -800,8 +800,8 @@
       "citation_accuracy": 1.0,
       "answer_similarity": 0.8230294967137128,
       "domain_match": true,
-      "latency_ms": 4712.658199990983,
-      "confidence": 6.505272388458252
+      "latency_ms": 2032.579499995336,
+      "confidence": 7.037253379821777
     },
     {
       "id": "q036",
@@ -811,10 +811,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.6028662234478461,
+      "answer_similarity": 0.6029140319484189,
       "domain_match": true,
-      "latency_ms": 4817.221899997094,
-      "confidence": 4.769699573516846
+      "latency_ms": 1892.3702000174671,
+      "confidence": 4.769702911376953
     },
     {
       "id": "q037",
@@ -824,10 +824,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.8502924264582267,
+      "answer_similarity": 0.8501544257802437,
       "domain_match": true,
-      "latency_ms": 7878.215999997337,
-      "confidence": 2.5568768978118896
+      "latency_ms": 2892.332199960947,
+      "confidence": 2.5770418643951416
     },
     {
       "id": "q009",
@@ -839,8 +839,8 @@
       "citation_accuracy": 1.0,
       "answer_similarity": null,
       "domain_match": true,
-      "latency_ms": 3726.8324999895412,
-      "confidence": -7.444215774536133
+      "latency_ms": 565.7818999607116,
+      "confidence": -7.444214820861816
     },
     {
       "id": "q010",
@@ -852,8 +852,8 @@
       "citation_accuracy": 1.0,
       "answer_similarity": null,
       "domain_match": true,
-      "latency_ms": 3270.292999994126,
-      "confidence": -10.687444686889648
+      "latency_ms": 570.2484999783337,
+      "confidence": -9.926029205322266
     },
     {
       "id": "q049",
@@ -865,8 +865,8 @@
       "citation_accuracy": 1.0,
       "answer_similarity": null,
       "domain_match": true,
-      "latency_ms": 3523.317800005316,
-      "confidence": -10.669241905212402
+      "latency_ms": 562.2680999804288,
+      "confidence": -9.841928482055664
     },
     {
       "id": "q050",
@@ -878,8 +878,8 @@
       "citation_accuracy": 1.0,
       "answer_similarity": null,
       "domain_match": true,
-      "latency_ms": 3280.9407000022475,
-      "confidence": -10.931702613830566
+      "latency_ms": 558.89380001463,
+      "confidence": -10.928503036499023
     },
     {
       "id": "q051",
@@ -891,8 +891,8 @@
       "citation_accuracy": 1.0,
       "answer_similarity": null,
       "domain_match": true,
-      "latency_ms": 3228.4167999896454,
-      "confidence": -7.75643253326416
+      "latency_ms": 565.5098001006991,
+      "confidence": -6.620007514953613
     },
     {
       "id": "q052",
@@ -904,8 +904,8 @@
       "citation_accuracy": 1.0,
       "answer_similarity": null,
       "domain_match": true,
-      "latency_ms": 3238.0615000001853,
-      "confidence": -9.65733528137207
+      "latency_ms": 564.9702998343855,
+      "confidence": -10.018908500671387
     },
     {
       "id": "q053",
@@ -917,8 +917,8 @@
       "citation_accuracy": 1.0,
       "answer_similarity": null,
       "domain_match": true,
-      "latency_ms": 3302.2612999920966,
-      "confidence": -4.6652350425720215
+      "latency_ms": 564.9854000657797,
+      "confidence": -4.679215431213379
     },
     {
       "id": "q054",
@@ -930,8 +930,8 @@
       "citation_accuracy": 1.0,
       "answer_similarity": null,
       "domain_match": true,
-      "latency_ms": 3273.4541000099853,
-      "confidence": -9.552566528320312
+      "latency_ms": 574.3597999680787,
+      "confidence": -9.621082305908203
     },
     {
       "id": "q055",
@@ -943,8 +943,8 @@
       "citation_accuracy": 1.0,
       "answer_similarity": null,
       "domain_match": true,
-      "latency_ms": 4024.079200011329,
-      "confidence": -9.21435546875
+      "latency_ms": 572.9085002094507,
+      "confidence": -8.170732498168945
     },
     {
       "id": "q038",
@@ -956,8 +956,8 @@
       "citation_accuracy": 1.0,
       "answer_similarity": null,
       "domain_match": true,
-      "latency_ms": 3613.6160000023665,
-      "confidence": -9.098387718200684
+      "latency_ms": 560.8551998157054,
+      "confidence": -9.222504615783691
     },
     {
       "id": "q045",
@@ -969,8 +969,8 @@
       "citation_accuracy": 1.0,
       "answer_similarity": null,
       "domain_match": true,
-      "latency_ms": 3309.319299994968,
-      "confidence": -2.969238758087158
+      "latency_ms": 566.0974001511931,
+      "confidence": -3.787811517715454
     },
     {
       "id": "q031",
@@ -980,10 +980,10 @@
       "refused": false,
       "expected_refusal": false,
       "citation_accuracy": 1.0,
-      "answer_similarity": 0.7753298514136642,
+      "answer_similarity": 0.7704273627107836,
       "domain_match": true,
-      "latency_ms": 5022.039399991627,
-      "confidence": 0.8353636860847473
+      "latency_ms": 2287.486799992621,
+      "confidence": 1.1823573112487793
     }
   ]
 }

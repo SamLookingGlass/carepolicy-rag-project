@@ -112,7 +112,7 @@ def evaluate_agent_result(item: dict, result: QueryResult) -> dict:
     """Score an agent (or pipeline) result plus trajectory checks."""
     row = evaluate_result(item, result)
     steps = result.steps or []
-    names = [s.get("tool", "") for s in steps]
+    names = [s.get("tool", "") for s in steps if s.get("tool")]
     expected = item.get("expected_tools") or []
     got = Counter(names)
     need = Counter(expected)
@@ -148,6 +148,61 @@ def summarize_agent(results: list[dict]) -> dict:
             "avg_tool_calls": sum(r.get("tool_call_count", 0) for r in results) / n,
             "expected_tools_rate": sum(1 for r in results if r.get("expected_tools_used")) / n,
             "within_budget_rate": sum(1 for r in results if r.get("within_budget")) / n,
+        }
+    )
+    return summary
+
+
+def evaluate_multi_result(item: dict, result: QueryResult) -> dict:
+    """Score a multi-agent result: route, extra tools, retry, tokens, claim support."""
+    row = evaluate_agent_result(item, result)
+    expected_route = item.get("expected_route") or ""
+    predicted = getattr(result, "intent", "") or ""
+    expected_tools = item.get("expected_tools") or []
+    extra = max(0, row["tool_call_count"] - len(expected_tools))
+    row.update(
+        {
+            "expected_route": expected_route,
+            "predicted_route": predicted,
+            "route_accuracy": (not expected_route) or predicted == expected_route,
+            "extra_tool_calls": extra,
+            "retry_count": getattr(result, "retry_count", 0),
+            "tokens": getattr(result, "tokens", 0),
+            "estimated_cost_usd": getattr(result, "estimated_cost_usd", 0.0),
+            "supported_claim_rate": getattr(result, "supported_claim_rate", None),
+            "step_count": len(result.steps or []),
+        }
+    )
+    return row
+
+
+def summarize_multi(results: list[dict]) -> dict:
+    """Agent summary plus route, retry, token, and step metrics."""
+    summary = summarize_agent(results)
+    if not results:
+        return summary
+    n = len(results)
+    routed = [r for r in results if r.get("predicted_route")]
+    supported = [
+        r["supported_claim_rate"]
+        for r in results
+        if r.get("supported_claim_rate") is not None
+    ]
+    summary.update(
+        {
+            "route_accuracy": (
+                sum(1 for r in routed if r.get("route_accuracy")) / len(routed)
+                if routed
+                else None
+            ),
+            "avg_extra_tool_calls": sum(r.get("extra_tool_calls", 0) for r in results) / n,
+            "avg_steps": sum(r.get("step_count", 0) for r in results) / n,
+            "avg_tokens": sum(r.get("tokens", 0) for r in results) / n,
+            "estimated_cost_usd": sum(r.get("estimated_cost_usd", 0.0) for r in results),
+            "retry_rate": sum(1 for r in results if r.get("retry_count", 0) > 0) / n,
+            "avg_supported_claim_rate": (
+                sum(supported) / len(supported) if supported else None
+            ),
         }
     )
     return summary

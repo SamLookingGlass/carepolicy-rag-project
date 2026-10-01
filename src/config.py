@@ -55,6 +55,12 @@ class Settings(BaseSettings):
     agent_max_model_turns: int = 4
     agent_max_tool_calls: int = 6
 
+    # Multi-agent workflow
+    multi_max_retries: int = 1
+    multi_max_steps: int = 12
+    # Blended gpt-4o-mini estimate; labeled as an estimate in reports
+    llm_usd_per_1k_tokens: float = 0.0003
+
     api_key: str = "dev-key-change-me"
 
     # Hugging Face Hub (cross-encoder reranker downloads)
