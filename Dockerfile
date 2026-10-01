@@ -8,11 +8,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY pyproject.toml README.md ./
 COPY src ./src
-COPY data ./data
 COPY scripts ./scripts
+COPY data/sources ./data/sources
+COPY data/processed ./data/processed
+COPY data/index ./data/index
 
 RUN pip install --no-cache-dir -e .
 
-EXPOSE 8000
+# Bake the reranker so the first question does not download it.
+RUN python -c "from sentence_transformers import CrossEncoder; CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2', device='cpu')"
 
-CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+EXPOSE 7860
+
+CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "7860"]

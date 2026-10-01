@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CarePolicy</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f6f4ef;
+      --ink: #1c1915;
+      --muted: #5c564c;
+      --line: #d9d3c7;
+      --card: #fffdf8;
+      --accent: #1f4d3a;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #161411;
+        --ink: #f3efe6;
+        --muted: #b7b0a4;
+        --line: #3a342c;
+        --card: #211e1a;
+        --accent: #8fbfa4;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 16px/1.5 Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+    main { max-width: 44rem; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+    h1 { font-size: 1.8rem; font-weight: 600; margin: 0 0 0.4rem; }
+    p { margin: 0.4rem 0; }
+    .note { color: var(--muted); font-size: 0.95rem; }
+    label { display: block; margin: 1.1rem 0 0.35rem; font-size: 0.9rem; }
+    textarea, select, button {
+      font: inherit;
+      color: inherit;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+    textarea { width: 100%; min-height: 6.5rem; padding: 0.7rem; resize: vertical; }
+    select { padding: 0.4rem 0.5rem; }
+    .row { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; margin-top: 0.8rem; }
+    button {
+      background: var(--accent);
+      color: #fff;
+      border: 0;
+      padding: 0.45rem 0.9rem;
+      cursor: pointer;
+    }
+    button.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+    button:disabled { opacity: 0.6; cursor: wait; }
+    #status { min-height: 1.4rem; color: var(--muted); margin-top: 0.8rem; }
+    article {
+      margin-top: 1.4rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .meta { font-size: 0.9rem; color: var(--muted); }
+    pre {
+      white-space: pre-wrap;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 0.8rem;
+      overflow-x: auto;
+    }
+    ul { padding-left: 1.1rem; }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>CarePolicy</h1>
+    <p>Ask about Singapore public healthcare policy. Answers come from scraped HealthHub, MOH, HPB, and PDPC pages, with citations I can check.</p>
+    <p class="note">Educational project. Not medical or legal advice. <code>multi</code> can take about 20 seconds because it searches more than once.</p>
+
+    <label for="question">Question</label>
+    <textarea id="question">What is CHAS and who is eligible?</textarea>
+
+    <label for="mode">Mode</label>
+    <select id="mode">
+      <option value="pipeline">pipeline — one search</option>
+      <option value="agent">agent — the model picks the searches</option>
+      <option value="multi" selected>multi — route, then specialists</option>
+    </select>
+
+    <div class="row">
+      <button type="button" id="ask">Ask</button>
+      <button type="button" class="ghost" data-q="What is CHAS and who is eligible?" data-mode="pipeline">What is CHAS?</button>
+      <button type="button" class="ghost" data-q="Compare CHAS and MediShield Life: who is eligible for each?" data-mode="multi">Compare two schemes</button>
+      <button type="button" class="ghost" data-q="What is the stock price of Apple Inc today?" data-mode="pipeline">Outside the corpus</button>
+    </div>
+    <p id="status"></p>
+    <article id="result" hidden></article>
+    <p class="note">Raw API: <a href="/docs">/docs</a>. The form sends the app key for you. That key is not the model key.</p>
+  </main>
+  <script id="boot" type="application/json">__BOOT_JSON__</script>
+  <script>
+    const boot = JSON.parse(document.getElementById("boot").textContent);
+    const question = document.getElementById("question");
+    const mode = document.getElementById("mode");
+    const ask = document.getElementById("ask");
+    const status = document.getElementById("status");
+    const result = document.getElementById("result");
+
+    document.querySelectorAll("[data-q]").forEach((button) => {
+      button.addEventListener("click", () => {
+        question.value = button.dataset.q;
+        mode.value = button.dataset.mode;
+      });
+    });
+
+    function esc(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (ch) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[ch]));
+    }
+
+    function render(data) {
+      const cites = (data.citations || []).map((c) => {
+        const title = esc(c.title || c.domain || "source");
+        const link = c.url ? `<a href="${esc(c.url)}">${title}</a>` : title;
+        return `<li>[${esc(c.index)}] ${link} <span class="meta">${esc(c.domain || "")}</span></li>`;
+      }).join("");
+      const check = data.citation_verification || {};
+      result.hidden = false;
+      result.innerHTML = `
+        <p class="meta">refused: ${esc(data.refused)} · intent: ${esc(data.intent || "—")} · ${esc(data.latency_ms)} ms · citations valid: ${esc(check.valid)}</p>
+        <p>${esc(data.answer)}</p>
+        ${cites ? `<ul>${cites}</ul>` : ""}
+        ${data.trace ? `<pre>${esc(data.trace)}</pre>` : ""}
+      `;
+    }
+
+    ask.addEventListener("click", async () => {
+      ask.disabled = true;
+      result.hidden = true;
+      status.textContent = mode.value === "pipeline"
+        ? "Searching once…"
+        : "Working… multi and agent can take around 20 seconds.";
+      try {
+        const response = await fetch("/query", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-Key": boot.apiKey
+          },
+          body: JSON.stringify({ question: question.value, mode: mode.value })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          status.textContent = data.detail || `Request failed (${response.status})`;
+          return;
+        }
+        status.textContent = "";
+        render(data);
+      } catch (err) {
+        status.textContent = err.message || "Request failed";
+      } finally {
+        ask.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

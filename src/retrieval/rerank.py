@@ -18,7 +18,10 @@ def _get_cross_encoder():
     from sentence_transformers import CrossEncoder
 
     get_settings()  # ensure HF_TOKEN from .env is exported to os.environ
-    return CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+    # Stay on CPU. On a ZeroGPU Space, leaving the device automatic marks this
+    # small model as a CUDA tensor, and the host then unloads it from the
+    # process that actually answers questions.
+    return CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2", device="cpu")
 
 
 def rerank(query: str, candidates: list[dict], top_k: int | None = None) -> list[dict]:

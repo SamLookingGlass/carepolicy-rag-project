@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import json
 import time
 from collections import defaultdict
+from pathlib import Path
 from typing import Any, Literal
 
 from fastapi import Depends, FastAPI, HTTPException, Security
+from fastapi.responses import HTMLResponse
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field
 
@@ -175,11 +178,13 @@ def query(request: QueryRequest, pipeline: RAGPipeline = Depends(get_pipeline)):
     )
 
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 def root():
-    return {
-        "service": "CarePolicy RAG",
-        "docs": "/docs",
-        "endpoints": ["/health", "/query"],
-        "modes": ["pipeline", "agent", "multi"],
-    }
+    """Demo form. The app key is filled in here so a visitor does not paste a header.
+
+    The model key stays in the server environment and is not written into the page.
+    """
+    page = Path(__file__).resolve().parent / "static" / "index.html"
+    html = page.read_text(encoding="utf-8")
+    boot = json.dumps({"apiKey": get_settings().api_key}).replace("<", "\\u003c")
+    return html.replace("__BOOT_JSON__", boot)

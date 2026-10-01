@@ -1,3 +1,16 @@
+---
+title: CarePolicy
+emoji: 🏥
+colorFrom: blue
+colorTo: green
+sdk: gradio
+sdk_version: 5.49.1
+app_file: app.py
+python_version: 3.12
+startup_duration_timeout: 1h
+pinned: false
+---
+
 # Project CarePolicy
 #### Live Demo: https://huggingface.co/spaces/SamsLookingGlass/carepolicy-rag
 
@@ -315,7 +328,7 @@ flowchart LR
 
 | Piece            | What I used                                                             |
 | ---------------- | ----------------------------------------------------------------------- |
-| API              | FastAPI, `X-API-Key`, 30 req/min                                        |
+| API              | FastAPI, `X-API-Key`, 30 req/min. Public demo is Gradio, not this API. |
 | Search           | BM25 + Qdrant, RRF, `cross-encoder/ms-marco-MiniLM-L-6-v2` (local CPU)  |
 | LLM / embeddings | OpenAI `gpt-4o-mini` / `text-embedding-3-small` (Azure is wired up too) |
 | Scrape           | httpx + Playwright                                                      |
@@ -342,6 +355,29 @@ Local Qdrant lives on disk (`QDRANT_MODE=local`).
 I put PDPA in a healthcare corpus because hospitals handle patient data. Consent, appointing a DPO, and breach rules show up in everyday compliance, not only in a privacy seminar.
 
 For offline work, `python scripts/ingest_all.py --seed-only` loads bundled seed docs. Seeds and live HTML are kept in separate piles so they cannot mix. The numbers above are from the live scrape only.
+
+## Where to try it
+
+The public demo is a Gradio page: [CarePolicy on Hugging Face](https://huggingface.co/spaces/SamsLookingGlass/carepolicy-rag). Type a question, pick `pipeline`, `agent`, or `multi`, and read the answer, citations, and trace. `multi` can take about 20 seconds. If the Space has been idle it sleeps, and the first question after that waits while the index loads.
+
+The block at the top of this file is Space config (`sdk: gradio`). Hugging Face reads it. It is not part of the project story.
+
+I first tried to host the FastAPI app itself. `Dockerfile` runs uvicorn on port 7860 and copies the live index into the image, so `/docs` would have been on the public URL. Hugging Face refused to create that Space: a Docker Space on a personal account now needs Pro, even on free CPU. I left the Dockerfile in the repo as KIV. If I subscribe later, that is the image I would deploy. The Space that is up now does not build it.
+
+What I shipped instead is Gradio on ZeroGPU, which a free account can host. `app.py` calls the same pipeline, agent, and workflow. `scripts/push_space.py` uploads the code plus `data/processed` and `data/index`. Those folders stay gitignored, so linking this GitHub repo to a Space would boot with an empty index. `.env` is not uploaded. `OPENAI_API_KEY` is a Space secret.
+
+**Gradio and Swagger are two doors onto the same three modes.**
+
+| | Gradio | Swagger (`/docs`) |
+| --- | --- | --- |
+| Where | The Hugging Face Space | Local, after you start uvicorn |
+| What you do | Type in a box and pick a mode | Authorize, then `POST /query` with JSON |
+| What you see | Answer, citations, refused, intent, trace | The raw response: `steps`, tokens, citation check |
+| Keys | The OpenAI key stays on the server. You do not paste one. | `X-API-Key` from `.env`. That is the app key, not the OpenAI key. |
+
+I use Gradio when I want someone to ask a question without reading an API spec. I use Swagger when I want to see the request and the JSON. Running uvicorn locally also serves a small HTML form on `GET /`. That form is the same idea as Gradio, for the machine in front of me. It is not the hosted page.
+
+One thing I found after the first upload: ZeroGPU treated the cross-encoder as a GPU model and unloaded it, so pipeline mode refused “What is CHAS?” even though the chunks were there. I pinned the reranker to CPU (`device="cpu"` in `src/retrieval/rerank.py`). The question answered after that. Asking a question does not spend ZeroGPU quota. A hidden GPU hook exists only because the Space will not start without one.
 
 ## How to Get Started
 
@@ -378,7 +414,7 @@ I kept the HTTP surface small on purpose. The interesting work is inside the pip
 
 | Method | Path | Auth | What it is for |
 | --- | --- | --- | --- |
-| `GET` | `/` | open | Service name, docs link, and the three modes |
+| `GET` | `/` | open | Local HTML form (same idea as the Gradio page). Swagger is `/docs`. |
 | `GET` | `/health` | open | Liveness plus which LLM provider is active |
 | `POST` | `/query` | `X-API-Key` | Ask a question |
 
@@ -511,8 +547,12 @@ When something fails I open the per-question rows, not just the summary. `ablati
 ## Project layout
 
 ```
+app.py              Gradio page. This is what the public Space runs.
+requirements.txt    Dependencies for that Space
+Dockerfile          FastAPI image for a Hugging Face Pro Space. KIV. Not deployed.
+scripts/push_space.py
 src/
-├── api/            FastAPI — GET /health, POST /query
+├── api/            FastAPI — GET /, GET /health, POST /query, Swagger at /docs
 ├── pipeline.py     Fixed RAG chain
 ├── agent/          tools, single-agent loop, multi-agent workflow
 ├── retrieval/      BM25, Qdrant, RRF, rerank, query rewrite
