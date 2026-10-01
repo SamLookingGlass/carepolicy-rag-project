@@ -1,9 +1,12 @@
 # Project CarePolicy
+#### Live Demo: https://huggingface.co/spaces/SamsLookingGlass/carepolicy-rag
 
 Hello dear reader!  
 I built this to see what a careful RAG system looks like when the answers are about Singapore public healthcare policy. The boring version of RAG is: retrieve a page, send it to a model, print some text. I wanted to sit with the parts that usually go wrong - did we retrieve the right thing, does the citation actually point at a real source, and should we have answered at all?
 
 **Note:** This is an educational project on public government pages. It is not medical or legal advice.
+
+
 
 ## Why did I build this project?
 
